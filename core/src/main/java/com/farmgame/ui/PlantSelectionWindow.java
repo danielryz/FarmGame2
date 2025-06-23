@@ -51,11 +51,16 @@ public class PlantSelectionWindow extends Window {
             Table rowTable = new Table();
             rowTable.defaults().pad(5);
 
-            Pixmap pixmap = new Pixmap(16, 16, Pixmap.Format.RGBA8888);
-            pixmap.setColor(type.getColor());
-            pixmap.fill();
-            Image colorBox = new Image(new Texture(pixmap));
-            pixmap.dispose();
+            Image colorBox;
+            if (type.getTexture() != null) {
+                colorBox = new Image(type.getTexture());
+            } else {
+                Pixmap pixmap = new Pixmap(16, 16, Pixmap.Format.RGBA8888);
+                pixmap.setColor(type.getColor());
+                pixmap.fill();
+                colorBox = new Image(new Texture(pixmap));
+                pixmap.dispose();
+            }
 
             int adjustedCost = (int)(type.getSeedPrice() / difficultyManager.getMoneyMultiplier());
             int adjustedSellPrice = (int)(type.getSellPrice() / difficultyManager.getMoneyMultiplier());

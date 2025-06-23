@@ -7,8 +7,10 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
@@ -40,6 +42,8 @@ public class GameScreen implements Screen {
     private final ShapeRenderer shapeRenderer;
     private final SpriteBatch batch;
     private final BitmapFont font = new BitmapFont();
+    private final Texture backgroundTexture;
+    private final Texture plotTexture;
 
     private SaveManager saveManager;
     private final QuestManager questManager = new QuestManager();
@@ -109,6 +113,8 @@ public class GameScreen implements Screen {
         this.gameViewport = new ScreenViewport(camera);
         this.gameClock = new GameClock();
         this.weather = new Weather();
+        this.backgroundTexture = new Texture(Gdx.files.internal("assets/background.png"));
+        this.plotTexture = new Texture(Gdx.files.internal("assets/plot.png"));
 
         if (game != null) {
             saveManager = new SaveManager(game.getDifficultyManager());
@@ -117,7 +123,7 @@ public class GameScreen implements Screen {
             saveManager.setDifficultyMultiplier(difficultyMultiplier);
         }
 
-        this.farm = new Farm(10, 10, 5, 5, saveManager.getDifficultyManager());
+        this.farm = new Farm(20, 20, 10, 10, saveManager.getDifficultyManager());
 
         if (saveSlot > 0 && saveSlot <= 5) {
             this.currentSaveSlot = saveSlot;
@@ -1160,43 +1166,24 @@ public class GameScreen implements Screen {
                     shapeRenderer.setColor(new Color(0f, 1f, 0f, 0.4f));
                     drawDiamond(isoPen.x, isoPen.y, PEN_WIDTH, PEN_HEIGHT);
                 }
-                if (pen.getState() == AnimalPen.State.OCCUPIED && !pen.getAnimals().isEmpty()) {
-                    int perRow = (int)Math.ceil(Math.sqrt(pen.getCapacity()));
-                    float cell = PEN_WIDTH / (float)perRow;
-
-                    for (int i = 0; i < pen.getAnimals().size(); i++) {
-                        Animal animal = pen.getAnimals().get(i);
-                        int row = i / perRow;
-                        int col = i % perRow;
-                        float size = cell - 4f;
-                        float ax = isoPen.x + col * cell + 2f;
-                        float ay = isoPen.y + row * cell + 2f;
-
-                        shapeRenderer.setColor(animal.getType().getColor());
-                        drawDiamond(ax, ay, (int)size, PEN_HEIGHT / perRow);
-
-                        if (animal.getProductState() != Animal.ProductState.NOT_FED) {
-                            Color squareColor = switch (animal.getProductState()) {
-                                case PRODUCTION -> Color.GREEN;
-                                case READY -> Color.GOLD;
-                                default -> null;
-                            };
-                            if (squareColor != null) {
-                                shapeRenderer.setColor(squareColor);
-                                float squareSize = size / 2f;
-                                float squareX = ax + size - squareSize;
-                                float squareY = ay + size - squareSize;
-                                drawDiamond(squareX, squareY, (int)squareSize, PEN_HEIGHT / perRow / 2);
-                            }
-                        }
-                    }
-                }
             }
         }
         shapeRenderer.end();
 
         batch.begin();
         batch.setColor(Color.WHITE);
+        batch.draw(backgroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        // Rysowanie tekstur działek
+        for (int x = 0; x < farm.getWidth(); x++) {
+            for (int y = 0; y < farm.getHeight(); y++) {
+                Plot plot = farm.getPlot(x, y);
+                if (plot == null) continue;
+                Vector2 iso = gridToIso(x, y, TILE_WIDTH, TILE_HEIGHT, offsetX, offsetY);
+                if (!plot.isBlocked() || hasUnlockedNeighborPlot(x, y)) {
+                    batch.draw(plotTexture, iso.x, iso.y, TILE_WIDTH, TILE_HEIGHT);
+                }
+            }
+        }
         // Rysowanie tekstur roślin
         for (int x = 0; x < farm.getWidth(); x++) {
             for (int y = 0; y < farm.getHeight(); y++) {
@@ -1209,6 +1196,19 @@ public class GameScreen implements Screen {
                 float size = TILE_WIDTH / 2f;
 
                 batch.draw(plot.getPlant().getTexture(), centerX, centerY, size, TILE_HEIGHT / 2f);
+            }
+        }
+        // Rysowanie tekstur zwierząt
+        for (int px = 0; px < farm.getPenWidth(); px++) {
+            for (int py = 0; py < farm.getPenHeight(); py++) {
+                AnimalPen pen = farm.getAnimalPen(px, py);
+                if (pen == null || pen.getAnimals().isEmpty()) continue;
+                Animal animal = pen.getAnimals().get(0);
+                Vector2 isoPen = gridToIso(px, py, PEN_WIDTH, PEN_HEIGHT, penOffsetX, offsetY);
+                float ax = isoPen.x + PEN_WIDTH / 4f;
+                float ay = isoPen.y + PEN_HEIGHT / 4f;
+                float size = PEN_WIDTH / 2f;
+                batch.draw(animal.getType().getTexture(), ax, ay, size, PEN_HEIGHT / 2f);
             }
         }
         // Tekst do plot
@@ -1567,7 +1567,7 @@ public class GameScreen implements Screen {
         float ty = (screenY - offY) / (tileH / 2f);
         float gx = (tx + ty) / 2f;
         float gy = (ty - tx) / 2f;
-        return new Vector2(Math.round(gx), Math.round(gy));
+        return new Vector2(MathUtils.floor(gx), MathUtils.floor(gy));
     }
 
     private void drawDiamond(float x, float y, int width, int height) {
@@ -1591,5 +1591,7 @@ public class GameScreen implements Screen {
         batch.dispose();
         skin.dispose();
         font.dispose();
+        backgroundTexture.dispose();
+        plotTexture.dispose();
     }
 }

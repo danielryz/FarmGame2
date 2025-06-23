@@ -5,11 +5,13 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.farmgame.game.Plant.GrowthStage;
+import com.badlogic.gdx.Gdx;
 
 public class PlantType {
     private final String name;
     private final float growthTime;
     private final Color color;
+    private final Texture texture;
     private final int seedPrice;
     private final int sellPrice;
     private final int requiredLevel;
@@ -22,7 +24,20 @@ public class PlantType {
         this.seedPrice = seedPrice;
         this.sellPrice = sellPrice;
         this.requiredLevel = requiredLevel;
+        this.texture = null;
         this.stageRegions = generateStageTextures(color);
+    }
+
+    public PlantType(String name, float growthTime, int seedPrice, int sellPrice, int requiredLevel, String texturePath) {
+        this.name = name;
+        this.growthTime = growthTime;
+        this.color = Color.WHITE;
+        this.seedPrice = seedPrice;
+        this.sellPrice = sellPrice;
+        this.requiredLevel = requiredLevel;
+        this.texture = new Texture(Gdx.files.internal(texturePath));
+        TextureRegion region = new TextureRegion(this.texture);
+        this.stageRegions = new TextureRegion[] { region, region, region };
     }
 
     public String getName() {
@@ -35,6 +50,10 @@ public class PlantType {
 
     public Color getColor() {
         return color;
+    }
+
+    public Texture getTexture() {
+        return texture;
     }
 
     public int getSeedPrice() {

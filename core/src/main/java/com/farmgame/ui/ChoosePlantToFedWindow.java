@@ -50,13 +50,17 @@ public class ChoosePlantToFedWindow extends Window {
             contentTable.add(noPlantsLabel).pad(10).row();
         } else {
             for (PlantType type : availablePlants) {
-                Pixmap pixmap = new Pixmap(16, 16, Pixmap.Format.RGBA8888);
-                pixmap.setColor(type.getColor());
-                pixmap.fill();
-                Texture texture = new Texture(pixmap);
-                pixmap.dispose();
-
-                Image colorBox = new Image(texture);
+                Image colorBox;
+                if (type.getTexture() != null) {
+                    colorBox = new Image(type.getTexture());
+                } else {
+                    Pixmap pixmap = new Pixmap(16, 16, Pixmap.Format.RGBA8888);
+                    pixmap.setColor(type.getColor());
+                    pixmap.fill();
+                    Texture texture = new Texture(pixmap);
+                    pixmap.dispose();
+                    colorBox = new Image(texture);
+                }
 
                 int quantity = inventory.getQuantity(type.getName());
                 String infoText = String.format("%s (Ilość: %d)\nWartość: %d $",
