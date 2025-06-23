@@ -10,8 +10,11 @@ public class BuildStoreWindow extends Window {
         void onChoosePen();
     }
 
+    private final BuildChoiceListener listener;
+
     public BuildStoreWindow(String title, Skin skin, BuildChoiceListener listener) {
         super(title, skin);
+        this.listener = listener;
         this.setModal(true);
         this.setMovable(true);
         this.setKeepWithinStage(true);
