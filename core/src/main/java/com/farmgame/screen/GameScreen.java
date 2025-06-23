@@ -63,6 +63,13 @@ public class GameScreen implements Screen {
         FERTILIZE
     }
     private Action currentAction = Action.PLANT;
+
+    private enum BuildMode {
+        NONE,
+        PLOT,
+        PEN
+    }
+    private BuildMode buildMode = BuildMode.NONE;
     private final Label moneyLabel;
     private final OrthographicCamera camera;
     private final Viewport gameViewport;
@@ -360,8 +367,25 @@ public class GameScreen implements Screen {
                 lastProcessedX = -1;
                 lastProcessedY = -1;
                 isDragging = true;
-
                 Vector3 worldCoords = camera.unproject(new Vector3(screenX, screenY, 0));
+
+                if (buildMode == BuildMode.PLOT) {
+                    Vector2 coords = isoToGrid(worldCoords.x, worldCoords.y, TILE_WIDTH, TILE_HEIGHT, offsetX, offsetY);
+                    int gx = (int) coords.x;
+                    int gy = (int) coords.y;
+                    if (gx >= 0 && gx < farm.getWidth() && gy >= 0 && gy < farm.getHeight()) {
+                        attemptBuildPlot(gx, gy);
+                    }
+                    return true;
+                } else if (buildMode == BuildMode.PEN) {
+                    Vector2 coords = isoToGrid(worldCoords.x, worldCoords.y, PEN_WIDTH, PEN_HEIGHT, penOffsetX, offsetY);
+                    int gx = (int) coords.x;
+                    int gy = (int) coords.y;
+                    if (gx >= 0 && gx < farm.getPenWidth() && gy >= 0 && gy < farm.getPenHeight()) {
+                        attemptBuildPen(gx, gy);
+                    }
+                    return true;
+                }
 
                 Vector2 plotCoords = isoToGrid(worldCoords.x, worldCoords.y, TILE_WIDTH, TILE_HEIGHT, offsetX, offsetY);
                 if (plotCoords.x >= 0 && plotCoords.x < farm.getWidth() && plotCoords.y >= 0 && plotCoords.y < farm.getHeight()) {
@@ -979,12 +1003,14 @@ public class GameScreen implements Screen {
                 BuildStoreWindow window = new BuildStoreWindow("Sklep", skin, new BuildStoreWindow.BuildChoiceListener() {
                     @Override
                     public void onChoosePlot() {
-                        MessageManager.info("Wybrano pole - funkcja w budowie");
+                        buildMode = BuildMode.PLOT;
+                        MessageManager.info("Wskaż miejsce na nowe pole");
                     }
 
                     @Override
                     public void onChoosePen() {
-                        MessageManager.info("Wybrano zagrodę - funkcja w budowie");
+                        buildMode = BuildMode.PEN;
+                        MessageManager.info("Wskaż miejsce na nową zagrodę");
                     }
                 });
                 stage.addActor(window);
@@ -1083,6 +1109,10 @@ public class GameScreen implements Screen {
                     shapeRenderer.setColor(baseColor);
                     drawDiamond(iso.x, iso.y, TILE_WIDTH, TILE_HEIGHT);
                 }
+                if (buildMode == BuildMode.PLOT && plot.isBlocked() && hasUnlockedNeighborPlot(x, y)) {
+                    shapeRenderer.setColor(new Color(0f, 1f, 0f, 0.4f));
+                    drawDiamond(iso.x, iso.y, TILE_WIDTH, TILE_HEIGHT);
+                }
 
                 // Plant
                 if (plot.getPlant() != null) {
@@ -1131,6 +1161,10 @@ public class GameScreen implements Screen {
 
                 if (!pen.isBlocked() || hasUnlockedNeighborPen(px, py)) {
                     shapeRenderer.setColor(penColor);
+                    drawDiamond(isoPen.x, isoPen.y, PEN_WIDTH, PEN_HEIGHT);
+                }
+                if (buildMode == BuildMode.PEN && pen.isBlocked() && hasUnlockedNeighborPen(px, py)) {
+                    shapeRenderer.setColor(new Color(0f, 1f, 0f, 0.4f));
                     drawDiamond(isoPen.x, isoPen.y, PEN_WIDTH, PEN_HEIGHT);
                 }
                 if (pen.getState() == AnimalPen.State.OCCUPIED && !pen.getAnimals().isEmpty()) {
@@ -1459,6 +1493,44 @@ public class GameScreen implements Screen {
             }
         }
         return false;
+    }
+
+    private void attemptBuildPlot(int x, int y) {
+        Plot plot = farm.getPlot(x, y);
+        if (plot == null || !plot.isBlocked() || !hasUnlockedNeighborPlot(x, y)) {
+            MessageManager.warning("Nie można tu zbudować pola!");
+            return;
+        }
+        int price = farm.getPlotPrice(x, y);
+        if (player.getMoney() >= price) {
+            plot.unlock();
+            player.addMoney(-price);
+            player.addExp(2);
+            updatePlayerStatus();
+            MessageManager.info("Zbudowano nowe pole");
+            buildMode = BuildMode.NONE;
+        } else {
+            MessageManager.warning("Za mało pieniędzy na pole!");
+        }
+    }
+
+    private void attemptBuildPen(int x, int y) {
+        AnimalPen pen = farm.getAnimalPen(x, y);
+        if (pen == null || !pen.isBlocked() || !hasUnlockedNeighborPen(x, y)) {
+            MessageManager.warning("Nie można tu zbudować zagrody!");
+            return;
+        }
+        int price = farm.getPenPrice(x, y);
+        if (player.getMoney() >= price) {
+            pen.unlock();
+            player.addMoney(-price);
+            player.addExp(5);
+            updatePlayerStatus();
+            MessageManager.info("Zbudowano nową zagrodę");
+            buildMode = BuildMode.NONE;
+        } else {
+            MessageManager.warning("Za mało pieniędzy na zagrodę!");
+        }
     }
 
     private Vector2 gridToIso(int x, int y, int tileW, int tileH, int offX, int offY) {
