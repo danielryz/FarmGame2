@@ -1497,7 +1497,15 @@ public class GameScreen implements Screen {
 
     private void attemptBuildPlot(int x, int y) {
         Plot plot = farm.getPlot(x, y);
-        if (plot == null || !plot.isBlocked() || !hasUnlockedNeighborPlot(x, y)) {
+        if (plot == null) {
+            if (!farm.isCoordinateEmpty(x, y)) {
+                MessageManager.warning("To miejsce jest już zajęte!");
+                return;
+            }
+            MessageManager.warning("Nie można tu zbudować pola!");
+            return;
+        }
+        if (!plot.isBlocked() || !hasUnlockedNeighborPlot(x, y)) {
             MessageManager.warning("Nie można tu zbudować pola!");
             return;
         }
@@ -1516,7 +1524,15 @@ public class GameScreen implements Screen {
 
     private void attemptBuildPen(int x, int y) {
         AnimalPen pen = farm.getAnimalPen(x, y);
-        if (pen == null || !pen.isBlocked() || !hasUnlockedNeighborPen(x, y)) {
+        if (pen == null) {
+            if (!farm.isCoordinateEmpty(x, y)) {
+                MessageManager.warning("To miejsce jest już zajęte!");
+                return;
+            }
+            MessageManager.warning("Nie można tu zbudować zagrody!");
+            return;
+        }
+        if (!pen.isBlocked() || !hasUnlockedNeighborPen(x, y)) {
             MessageManager.warning("Nie można tu zbudować zagrody!");
             return;
         }

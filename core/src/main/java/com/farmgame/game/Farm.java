@@ -150,22 +150,37 @@ public class Farm {
         setWateringSystem(true);
     }
 
-    public void addPlot(int x, int y, Plot plot) {
-        if (x < 0 || x >= width || y < 0 || y >= height) return;
-        plots.put(new GridPoint2(x, y), plot);
+    public boolean addPlot(int x, int y, Plot plot) {
+        if (x < 0 || x >= width || y < 0 || y >= height) return false;
+        GridPoint2 pos = new GridPoint2(x, y);
+        if (plots.containsKey(pos) || animalPens.containsKey(pos)) {
+            return false;
+        }
+        plots.put(pos, plot);
+        return true;
     }
 
     public void removePlot(int x, int y) {
         plots.remove(new GridPoint2(x, y));
     }
 
-    public void addAnimalPen(int x, int y, AnimalPen pen) {
-        if (x < 0 || x >= penWidth || y < 0 || y >= penHeight) return;
-        animalPens.put(new GridPoint2(x, y), pen);
+    public boolean addAnimalPen(int x, int y, AnimalPen pen) {
+        if (x < 0 || x >= penWidth || y < 0 || y >= penHeight) return false;
+        GridPoint2 pos = new GridPoint2(x, y);
+        if (animalPens.containsKey(pos) || plots.containsKey(pos)) {
+            return false;
+        }
+        animalPens.put(pos, pen);
+        return true;
     }
 
     public void removeAnimalPen(int x, int y) {
         animalPens.remove(new GridPoint2(x, y));
+    }
+
+    public boolean isCoordinateEmpty(int x, int y) {
+        GridPoint2 pos = new GridPoint2(x, y);
+        return !plots.containsKey(pos) && !animalPens.containsKey(pos);
     }
 
     public Map<GridPoint2, Plot> getPlotMap() {
