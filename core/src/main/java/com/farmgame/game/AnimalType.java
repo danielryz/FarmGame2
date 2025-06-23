@@ -1,6 +1,8 @@
 package com.farmgame.game;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.Gdx;
 import java.util.Set;
 
 public class AnimalType {
@@ -12,8 +14,13 @@ public class AnimalType {
     private final int sellPrice;
     private final Color color;
     private final int requiredLevel;
+    private final Texture texture;
 
     public AnimalType(String name, int cost, Set<String> feedSet, String productName, float productTime, int sellPrice, Color color, int requiredLevel) {
+        this(name, cost, feedSet, productName, productTime, sellPrice, color, requiredLevel, null);
+    }
+
+    public AnimalType(String name, int cost, Set<String> feedSet, String productName, float productTime, int sellPrice, Color color, int requiredLevel, String texturePath) {
         this.name = name;
         this.cost = cost;
         this.feedSet = feedSet;
@@ -22,6 +29,7 @@ public class AnimalType {
         this.sellPrice = sellPrice;
         this.color = color;
         this.requiredLevel = requiredLevel;
+        this.texture = texturePath != null ? new Texture(Gdx.files.internal(texturePath)) : null;
     }
     public String getName() {
         return name;
@@ -47,6 +55,7 @@ public class AnimalType {
     public Color getColor() {
         return color;
     }
+    public Texture getTexture() { return texture; }
     public int getRequiredLevel() {
         return requiredLevel;
     }

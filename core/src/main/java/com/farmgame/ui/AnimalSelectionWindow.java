@@ -49,13 +49,17 @@ public class AnimalSelectionWindow extends Window {
             Table rowTable = new Table();
             rowTable.defaults().pad(5);
 
-            Pixmap pixmap = new Pixmap(16, 16, Pixmap.Format.RGBA8888);
-            pixmap.setColor(type.getColor());
-            pixmap.fill();
-            Texture texture = new Texture(pixmap);
-            pixmap.dispose();
-
-            Image colorBox = new Image(texture);
+            Image colorBox;
+            if (type.getTexture() != null) {
+                colorBox = new Image(type.getTexture());
+            } else {
+                Pixmap pixmap = new Pixmap(16, 16, Pixmap.Format.RGBA8888);
+                pixmap.setColor(type.getColor());
+                pixmap.fill();
+                Texture texture = new Texture(pixmap);
+                pixmap.dispose();
+                colorBox = new Image(texture);
+            }
 
             int adjustedCost = (int)(type.getCost() / difficultyManager.getMoneyMultiplier());
             int adjustedSellPrice = (int)(type.getSellPrice() / difficultyManager.getMoneyMultiplier());

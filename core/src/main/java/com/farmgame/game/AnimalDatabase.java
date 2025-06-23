@@ -1,6 +1,8 @@
 package com.farmgame.game;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.Gdx;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,10 +11,7 @@ public class AnimalDatabase {
     private static final List<AnimalType> animalTypes = new ArrayList<>();
 
     static {
-        animalTypes.add(new AnimalType("Krowa", 200, Set.of("Trawa", "Pszenica", "Sałata", "Kapusta"), "Mleko", 40f, 40, Color.BLACK, 1));
-        animalTypes.add(new AnimalType("Kura", 100, Set.of("Pszenica", "Kukurydza"), "Jajko", 20f, 30, Color.YELLOW, 5));
-        animalTypes.add(new AnimalType("Owca", 300, Set.of("Trawa"), "Wełna", 50f, 50, Color.WHITE, 10));
-        animalTypes.add(new AnimalType("Świnia", 600, Set.of("Marchew", "Ziemniak", "Pszenica", "Kukurydza", "Sałata", "Kapusta", "Dynia"), "Mięso", 120f, 120, Color.PINK, 15));
+        animalTypes.add(new AnimalType("Krowa", 200, Set.of("Trawa"), "Mleko", 40f, 40, Color.WHITE, 1, "assets/cow.png"));
     }
 
     public static List<AnimalType> getAll() {

@@ -19,7 +19,7 @@ public class AnimalPen {
     private State state;
     private List<Animal> animals;
     private int capacity = 1;
-    private static final int MAX_CAPACITY = 9;
+    private static final int MAX_CAPACITY = 1;
     private AnimalType allowedType = null;
     private DifficultyManager difficultyManager;
     private Map<String, Integer> feedStock;
@@ -156,9 +156,7 @@ public class AnimalPen {
     }
 
     public void increaseCapacity() {
-        if (this.capacity < MAX_CAPACITY) {
-            this.capacity++;
-        }
+        // capacity upgrades disabled
     }
 
     public boolean isMaxCapacity() {
