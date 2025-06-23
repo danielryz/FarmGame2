@@ -1,5 +1,7 @@
 package com.farmgame.game;
 
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+
 public class Plant {
     private final PlantType type;
     private float currentGrowthTime;
@@ -122,6 +124,10 @@ public class Plant {
         if (percent < 0.33f) return GrowthStage.PLANTED;
         else if (percent < 1.00f) return GrowthStage.GROWING;
         else return GrowthStage.READY;
+    }
+
+    public TextureRegion getTexture() {
+        return type.getTextureForStage(getStage());
     }
 
 }

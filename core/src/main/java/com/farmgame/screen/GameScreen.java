@@ -1117,13 +1117,6 @@ public class GameScreen implements Screen {
                 // Plant
                 if (plot.getPlant() != null) {
                     Plant plant = plot.getPlant();
-                    float centerX = iso.x + TILE_WIDTH / 4f;
-                    float centerY = iso.y + TILE_HEIGHT / 4f;
-                    float size = TILE_WIDTH / 2f;
-
-                    shapeRenderer.setColor(plant.getType().getColor());
-                    drawDiamond(centerX, centerY, (int)size, TILE_HEIGHT / 2);
-
                     // Kropla wody
                     if (plant.isWatered() || plant.isAutoWatered()) {
                         float waterSize = TILE_WIDTH / 4f;
@@ -1204,6 +1197,20 @@ public class GameScreen implements Screen {
 
         batch.begin();
         batch.setColor(Color.WHITE);
+        // Rysowanie tekstur roślin
+        for (int x = 0; x < farm.getWidth(); x++) {
+            for (int y = 0; y < farm.getHeight(); y++) {
+                Plot plot = farm.getPlot(x, y);
+                if (plot == null || plot.getPlant() == null) continue;
+
+                Vector2 iso = gridToIso(x, y, TILE_WIDTH, TILE_HEIGHT, offsetX, offsetY);
+                float centerX = iso.x + TILE_WIDTH / 4f;
+                float centerY = iso.y + TILE_HEIGHT / 4f;
+                float size = TILE_WIDTH / 2f;
+
+                batch.draw(plot.getPlant().getTexture(), centerX, centerY, size, TILE_HEIGHT / 2f);
+            }
+        }
         // Tekst do plot
         for (int x = 0; x < farm.getWidth(); x++) {
             for (int y = 0; y < farm.getHeight(); y++) {
