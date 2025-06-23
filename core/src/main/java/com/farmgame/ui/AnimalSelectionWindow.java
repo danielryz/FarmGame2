@@ -107,8 +107,7 @@ public class AnimalSelectionWindow extends Window {
                             }
                             int adjustedCost = (int)(type.getCost() / difficultyManager.getMoneyMultiplier());
                             if (player.getMoney() >= adjustedCost) {
-                                Animal newAnimal = new Animal(type, difficultyManager);
-                                animalPen.placeAnimal(newAnimal, player, difficultyManager);
+                                animalPen.placeAnimal(type, player, difficultyManager);
 
                                 if (onBuyCallback != null) {
                                     onBuyCallback.run();

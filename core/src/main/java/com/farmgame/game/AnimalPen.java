@@ -59,33 +59,33 @@ public class AnimalPen {
     }
 
 
-    public boolean placeAnimal(Animal animal, Player player){
-        return placeAnimal(animal, player, this.difficultyManager);
+    public boolean placeAnimal(AnimalType type, Player player){
+        return placeAnimal(type, player, this.difficultyManager);
     }
 
-    public boolean placeAnimal(Animal animal, Player player, float difficultyMultiplier){
+    public boolean placeAnimal(AnimalType type, Player player, float difficultyMultiplier){
         DifficultyManager tempManager = new DifficultyManager();
         tempManager.setDifficultyMultiplier(difficultyMultiplier);
-        return placeAnimal(animal, player, tempManager);
+        return placeAnimal(type, player, tempManager);
     }
 
-    public boolean placeAnimal(Animal animal, Player player, DifficultyManager difficultyManager){
+    public boolean placeAnimal(AnimalType type, Player player, DifficultyManager difficultyManager){
         if (isBlocked() || isFull()) {
             System.out.println("Zagroda jest pełna!");
             return false;
         }
 
-        if (allowedType != null && !allowedType.equals(animal.getType())) {
+        if (allowedType != null && !allowedType.equals(type)) {
             System.out.println("Ta zagroda przyjmuje tylko zwierzęta typu: " + allowedType.getName());
             return false;
         }
 
-        Animal animalWithDifficulty = new Animal(animal.getType(), difficultyManager);
+        Animal animalWithDifficulty = new Animal(type, difficultyManager);
         this.animals.add(animalWithDifficulty);
-        this.allowedType = animal.getType();
+        this.allowedType = type;
         this.state = State.OCCUPIED;
 
-        int adjustedCost = (int)(animal.getType().getCost() / difficultyManager.getMoneyMultiplier());
+        int adjustedCost = (int)(type.getCost() / difficultyManager.getMoneyMultiplier());
         player.addMoney(-adjustedCost);
         player.addExp(5);
         return true;
