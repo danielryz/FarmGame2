@@ -10,6 +10,7 @@ import com.farmgame.player.InventoryItem;
 import com.farmgame.player.Player;
 import com.farmgame.quest.QuestManager;
 
+import com.badlogic.gdx.math.GridPoint2;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -88,13 +89,14 @@ public class SaveManager {
 
         // Konwertuj działki
         savedFarm.plots = new SavedPlot[farm.getWidth()][farm.getHeight()];
-        for (int x = 0; x < farm.getWidth(); x++) {
-            for (int y = 0; y < farm.getHeight(); y++) {
-                Plot plot = farm.getPlot(x, y);
-                if (plot != null) {
-                    SavedPlant savedPlant = null;
-                    if (plot.getPlant() != null) {
-                        Plant plant = plot.getPlant();
+        for (Map.Entry<GridPoint2, Plot> entry : farm.getPlotMap().entrySet()) {
+            int x = entry.getKey().x;
+            int y = entry.getKey().y;
+            Plot plot = entry.getValue();
+            if (plot != null) {
+                SavedPlant savedPlant = null;
+                if (plot.getPlant() != null) {
+                    Plant plant = plot.getPlant();
                         savedPlant = new SavedPlant(
                             plant.getType().getName(),
                             plant.getTimeRemaining(),
@@ -105,24 +107,24 @@ public class SaveManager {
                         );
                     }
 
-                    savedFarm.plots[x][y] = new SavedPlot(
+                savedFarm.plots[x][y] = new SavedPlot(
                         plot.isBlocked(),
                         plot.getState().name(),
                         savedPlant
-                    );
-                }
+                );
             }
         }
 
         // Konwertuj zagrody dla zwierząt
         savedFarm.animalPens = new Weather.SavedAnimalPen[farm.getPenWidth()][farm.getPenHeight()];
-        for (int px = 0; px < farm.getPenWidth(); px++) {
-            for (int py = 0; py < farm.getPenHeight(); py++) {
-                AnimalPen pen = farm.getAnimalPen(px, py);
-                if (pen != null) {
-                    List<SavedAnimal> savedAnimals = new ArrayList<>();
-                    for (Animal animal : pen.getAnimals()) {
-                        savedAnimals.add(new SavedAnimal(
+        for (Map.Entry<GridPoint2, AnimalPen> entry : farm.getAnimalPenMap().entrySet()) {
+            int px = entry.getKey().x;
+            int py = entry.getKey().y;
+            AnimalPen pen = entry.getValue();
+            if (pen != null) {
+                List<SavedAnimal> savedAnimals = new ArrayList<>();
+                for (Animal animal : pen.getAnimals()) {
+                    savedAnimals.add(new SavedAnimal(
                                 animal.getType().getName(),
                                 animal.getProductState().name(),
                                 animal.getTimeToNextProduct(),
@@ -132,20 +134,19 @@ public class SaveManager {
                     }
 
                     List<SavedInventoryItem> savedFeed = new ArrayList<>();
-                    for (Map.Entry<String, Integer> entry : pen.getFeedStock().entrySet()) {
-                        if (entry.getValue() > 0) {
-                            savedFeed.add(new SavedInventoryItem(entry.getKey(), entry.getValue(), 0));
+                    for (Map.Entry<String, Integer> feedEntry : pen.getFeedStock().entrySet()) {
+                        if (feedEntry.getValue() > 0) {
+                            savedFeed.add(new SavedInventoryItem(feedEntry.getKey(), feedEntry.getValue(), 0));
                         }
                     }
 
-                    savedFarm.animalPens[px][py] = new Weather.SavedAnimalPen(
-                            pen.isBlocked(),
-                            pen.getState().name(),
-                            pen.getCapacity(),
-                            savedAnimals.toArray(new SavedAnimal[0]),
-                            savedFeed.toArray(new SavedInventoryItem[0])
-                    );
-                }
+                savedFarm.animalPens[px][py] = new Weather.SavedAnimalPen(
+                        pen.isBlocked(),
+                        pen.getState().name(),
+                        pen.getCapacity(),
+                        savedAnimals.toArray(new SavedAnimal[0]),
+                        savedFeed.toArray(new SavedInventoryItem[0])
+                );
             }
         }
 
@@ -296,11 +297,13 @@ public class SaveManager {
             // Przywróć stan farmy
             if (gameState.farm != null) {
                 // Przywróć działki
-                for (int x = 0; x < gameState.farm.width && x < farm.getWidth(); x++) {
-                    for (int y = 0; y < gameState.farm.height && y < farm.getHeight(); y++) {
+                for (Map.Entry<GridPoint2, Plot> entry : farm.getPlotMap().entrySet()) {
+                    int x = entry.getKey().x;
+                    int y = entry.getKey().y;
+                    if (x < gameState.farm.width && y < gameState.farm.height) {
                         SavedPlot savedPlot = gameState.farm.plots[x][y];
                         if (savedPlot != null) {
-                            Plot plot = farm.getPlot(x, y);
+                            Plot plot = entry.getValue();
                             if (plot != null) {
                                 // Przywróć stan działki
                                 if (savedPlot.isBlocked) {
@@ -333,11 +336,13 @@ public class SaveManager {
                 }
 
                 // Przywróć zagrody
-                for (int px = 0; px < gameState.farm.penWidth && px < farm.getPenWidth(); px++) {
-                    for (int py = 0; py < gameState.farm.penHeight && py < farm.getPenHeight(); py++) {
+                for (Map.Entry<GridPoint2, AnimalPen> entry : farm.getAnimalPenMap().entrySet()) {
+                    int px = entry.getKey().x;
+                    int py = entry.getKey().y;
+                    if (px < gameState.farm.penWidth && py < gameState.farm.penHeight) {
                         Weather.SavedAnimalPen savedPen = gameState.farm.animalPens[px][py];
                         if (savedPen != null) {
-                            AnimalPen pen = farm.getAnimalPen(px, py);
+                            AnimalPen pen = entry.getValue();
                             if (pen != null) {
                                 // Przywróć stan zagrody
                                 if (savedPen.isBlocked) {
@@ -375,7 +380,6 @@ public class SaveManager {
 
                             farm.setWateringSystem(gameState.farm.hasWateringSystem);
                         }
-                        }
                     }
                 }
 
@@ -410,8 +414,8 @@ public class SaveManager {
                 }
             }
 
+        }
             Gdx.app.log("SaveManager", "Stan gry przywrócony pomyślnie");
-
         } catch (Exception e) {
             Gdx.app.error("SaveManager", "Błąd podczas przywracania stanu gry: " + e.getMessage());
             e.printStackTrace();

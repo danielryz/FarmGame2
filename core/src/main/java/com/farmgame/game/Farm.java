@@ -1,12 +1,16 @@
 package com.farmgame.game;
 
+import com.badlogic.gdx.math.GridPoint2;
+import java.util.HashMap;
+import java.util.Map;
+
 public class Farm {
     private final int width;
     private final int height;
-    private final Plot[][] plots;
+    private final Map<GridPoint2, Plot> plots;
     private final int[][] plotPrices;
 
-    private final AnimalPen[][] animalPens;
+    private final Map<GridPoint2, AnimalPen> animalPens;
     private final int[][] penPrices;
     private final int penWidth;
     private final int penHeight;
@@ -38,31 +42,33 @@ public class Farm {
 
         this.wateringSystem = false;
 
-        plots = new Plot[width][height];
+        plots = new HashMap<>();
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                plots[x][y] = new Plot(difficultyManager);
+                Plot p = new Plot(difficultyManager);
+                plots.put(new GridPoint2(x, y), p);
                 plotPrices[x][y] = (int) ( BASE_PLOT_PRICE * MULTIPLIER_PLOT * (x + y));
             }
         }
-        plots[0][0].unlock();
+        plots.get(new GridPoint2(0, 0)).unlock();
 
-        animalPens = new AnimalPen[penWidth][penHeight];
+        animalPens = new HashMap<>();
         for (int x = 0; x < penWidth; x++) {
             for (int y = 0; y < penHeight; y++) {
-                animalPens[x][y] = new AnimalPen(x, y, difficultyManager);
-                animalPens[x][y].setCapacity(BASE_PEN_CAPACITY);
+                AnimalPen pen = new AnimalPen(x, y, difficultyManager);
+                pen.setCapacity(BASE_PEN_CAPACITY);
+                animalPens.put(new GridPoint2(x, y), pen);
                 penPrices[x][y] = (int) (BASE_PEN_PRICE * MULTIPLIER_PEN * (x + y));
             }
         }
-        animalPens[0][0].unlock();
+        animalPens.get(new GridPoint2(0, 0)).unlock();
     }
 
     public Plot getPlot(int x, int y) {
         if (x < 0 || x >= width || y < 0 || y >= height) {
             return null;
         }
-        return plots[x][y];
+        return plots.get(new GridPoint2(x, y));
     }
 
     public int getPlotPrice(int x, int y) {
@@ -101,7 +107,7 @@ public class Farm {
         if (x < 0 || x >= penWidth || y < 0 || y >= penHeight) {
             return null;
         }
-        return animalPens[x][y];
+        return animalPens.get(new GridPoint2(x, y));
     }
 
     public int getPenPrice(int x, int y) {
@@ -134,17 +140,40 @@ public class Farm {
     public void setWateringSystem(boolean active) {
         this.wateringSystem = active;
         if (active) {
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    Plot plot = plots[x][y];
-                    if (plot != null) plot.setAutoWatered(true);
-                }
+            for (Plot plot : plots.values()) {
+                if (plot != null) plot.setAutoWatered(true);
             }
         }
     }
 
     public void purchaseWateringSystem() {
         setWateringSystem(true);
+    }
+
+    public void addPlot(int x, int y, Plot plot) {
+        if (x < 0 || x >= width || y < 0 || y >= height) return;
+        plots.put(new GridPoint2(x, y), plot);
+    }
+
+    public void removePlot(int x, int y) {
+        plots.remove(new GridPoint2(x, y));
+    }
+
+    public void addAnimalPen(int x, int y, AnimalPen pen) {
+        if (x < 0 || x >= penWidth || y < 0 || y >= penHeight) return;
+        animalPens.put(new GridPoint2(x, y), pen);
+    }
+
+    public void removeAnimalPen(int x, int y) {
+        animalPens.remove(new GridPoint2(x, y));
+    }
+
+    public Map<GridPoint2, Plot> getPlotMap() {
+        return plots;
+    }
+
+    public Map<GridPoint2, AnimalPen> getAnimalPenMap() {
+        return animalPens;
     }
 
 
